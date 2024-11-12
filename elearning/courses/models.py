@@ -15,7 +15,7 @@ class Module(models.Model):
     description = models.TextField()
 
 class Content(models.Model):
-    module = models.ForeignKey(Module,related_name='content', on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
     class Meta:
         abstract = True
 
