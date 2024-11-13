@@ -83,6 +83,9 @@ DATABASES = {
         'PASSWORD': 'admin',
         'HOST': 'localhost',
         'PORT': '5432',
+        'OPTIONS': {
+            'gssencmode': 'disable',  # Add this line to disable GSSAPI
+        }
     }
 }
 
