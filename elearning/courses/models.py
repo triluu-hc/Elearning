@@ -5,31 +5,25 @@ from .helpers import checkDate,checkDescription,checkOrder,checkText,checkTitle
 
 
 class Course(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
+    title = models.CharField(max_length=255, unique=True, validators=[checkTitle])
+    description = models.TextField(validators=[checkDescription])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    #Add validation upon saving to db
+    #clean up and trim inputs
     def clean(self):
-        self.title = checkTitle(self.title)
-        self.description = checkDescription(self.description)
-        checkDate(self.created_at, self.updated_at)
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
+        checkDate(self.created_at,self.updated_at)
+        self.title = self.title.strip().capitalize()
+        self.description = self.description.strip().capitalize()
+ 
 class Module(models.Model):
     course = models.ForeignKey(Course, related_name='modules', on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    order = models.PositiveIntegerField(default=0)
-    #Add validation upon saving to db
+    title = models.CharField(max_length=255, unique=True, validators=[checkTitle])
+    description = models.TextField(validators=[checkDescription])
+    order = models.PositiveIntegerField(default=0, validators=[checkOrder])
+    #clean up and trim inputs
     def clean(self):
-        self.title = checkTitle(self.title)
-        self.description = checkDescription(self.description)
-        checkOrder(self.order)
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
+        self.title = self.title.strip().capitalize()
+        self.description = self.description.strip().capitalize()
 class Content(models.Model):
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
     class Meta:
@@ -39,10 +33,7 @@ class TextContent(Content):
     text = models.TextField()
     #Add validation upon saving to db
     def clean(self):
-        self.text = checkText(self.text)
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
+        self.text = self.text.strip().capitalize()
 
 class VideoContent(Content):
     video_url = models.URLField()
