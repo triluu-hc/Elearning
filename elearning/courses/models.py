@@ -12,14 +12,14 @@ class Course(models.Model):
     #clean up and trim inputs
     def clean(self):
         checkDate(self.created_at,self.updated_at)
-        self.title = self.title.strip().capitalize()
-        self.description = self.description.strip().capitalize()
+        self.title = self.title.capitalize().strip()
+        self.description = self.description.capitalize().strip()
  
 class Module(models.Model):
     course = models.ForeignKey(Course, related_name='modules', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, unique=True, validators=[checkTitle])
     description = models.TextField(validators=[checkDescription])
-    order = models.PositiveIntegerField(default=0, validators=[checkOrder])
+    order = models.PositiveIntegerField(default=1, unique=True, validators=[checkOrder])
     #clean up and trim inputs
     def clean(self):
         self.title = self.title.strip().capitalize()
@@ -30,7 +30,7 @@ class Content(models.Model):
         abstract = True
 
 class TextContent(Content):
-    text = models.TextField()
+    text = models.TextField(validators=[checkText])
     #Add validation upon saving to db
     def clean(self):
         self.text = self.text.strip().capitalize()
