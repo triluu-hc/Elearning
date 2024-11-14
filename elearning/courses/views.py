@@ -51,19 +51,22 @@ class ContentViewSet(viewsets.ViewSet):
 
         return Response(text_serializer.data + video_serializer.data)
 
-    def create(self, request, course_pk=None, module_pk=None):
-        # Determine content type in body request and use appropriate serializer
-        content_type = request.data.get('content_type')
-        module = Module.objects.get(pk=module_pk)
+class TextContentViewSet(viewsets.ModelViewSet):
+    serializer_class = TextContentSerializer
 
-        if content_type == 'text':
-            serializer = TextContentSerializer(data=request.data)
-        elif content_type == 'video':
-            serializer = VideoContentSerializer(data=request.data)
-        else:
-            return Response({"error": "Invalid content_type. Use 'text' or 'video'."}, status=status.HTTP_400_BAD_REQUEST)
+    def get_queryset(self):
+        return TextContent.objects.filter(module_id=self.kwargs['module_pk'])
 
-        if serializer.is_valid():
-            serializer.save(module=module)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        module = Module.objects.get(pk=self.kwargs['module_pk'])
+        serializer.save(module=module)
+
+class VideoContentViewSet(viewsets.ModelViewSet):
+    serializer_class = VideoContentSerializer
+
+    def get_queryset(self):
+        return VideoContent.objects.filter(module_id=self.kwargs['module_pk'])
+
+    def perform_create(self, serializer):
+        module = Module.objects.get(pk=self.kwargs['module_pk'])
+        serializer.save(module=module)
