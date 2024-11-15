@@ -21,10 +21,12 @@ def checkDescription(description):
 def checkDate(created_at, updated_at):
     if created_at and updated_at and created_at > updated_at:
         raise serializers.ValidationError("Created time must be before updated time")
+    return updated_at
 
 def checkOrder(order):
     if order < 1 or order > 100:
         raise serializers.ValidationError("Order must be positive lower than 100")
+    return order
      
 def checkText(text):
     text = text.strip().capitalize()

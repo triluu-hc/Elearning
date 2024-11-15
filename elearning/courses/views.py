@@ -1,9 +1,14 @@
 from rest_framework import viewsets,status
 from rest_framework.permissions import IsAuthenticated
-from .models import Course, Module, TextContent, VideoContent
-from .serializers import (CourseSerializer, ModuleSerializer, TextContentSerializer, VideoContentSerializer)
+from .models import Subject,Course, Module, Content, TextContent, VideoContent
+from .serializers import (SubjectSerializer,CourseSerializer, ModuleSerializer, ContentSerializer, TextContentSerializer, VideoContentSerializer)
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+class SubjectViewSet(viewsets.ModelViewSet):
+    queryset = Subject.objects.all()
+    serializer_class = SubjectSerializer
+
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
@@ -22,34 +27,24 @@ class CourseViewSet(viewsets.ModelViewSet):
 class ModuleViewSet(viewsets.ModelViewSet):
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
-    def get_queryset(self):
-        return Module.objects.filter(course_id=self.kwargs['course_pk'])
+    permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        course = Course.objects.get(pk=self.kwargs['course_pk'])
-        serializer.save(course=course)
-
-    def perform_update(self, serializer):
-        # Save module with proper course relation
-        serializer.save()
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        id = instance.id
-        self.perform_destroy(instance)
-        return Response({"message": f"Module with id {id} deleted successfully"}, status=status.HTTP_200_OK)
+    @action(detail=True, methods=['get'])
+    def contents(self, request, pk=None):
+        module = self.get_object()
+        contents = module.contents.all()
+        serializer = ContentSerializer(contents, many=True, context={'request': request})
+        return Response(serializer.data)
 
 
 class ContentViewSet(viewsets.ViewSet):
-    def list(self, request, course_pk=None, module_pk=None):
-        # Retrieve all contents (text and video) for a specific module
-        text_contents = TextContent.objects.filter(module_id=module_pk)
-        video_contents = VideoContent.objects.filter(module_id=module_pk)
+    queryset = Content.objects.all()
+    serializer_class = ContentSerializer
+    permission_classes = [IsAuthenticated]
 
-        text_serializer = TextContentSerializer(text_contents, many=True)
-        video_serializer = VideoContentSerializer(video_contents, many=True)
-
-        return Response(text_serializer.data + video_serializer.data)
+    def get_queryset(self):
+        user = self.request.user
+        return Content.objects.filter(module__course__owner=user)
 
 class TextContentViewSet(viewsets.ModelViewSet):
     serializer_class = TextContentSerializer

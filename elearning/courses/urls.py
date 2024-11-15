@@ -20,7 +20,6 @@ module_detail = ModuleViewSet.as_view({
 
 content_list = ContentViewSet.as_view({
     'get': 'list',
-    'post': 'create'
 })
 
 text_content_list = TextContentViewSet.as_view({
