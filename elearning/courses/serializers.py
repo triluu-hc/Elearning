@@ -5,22 +5,31 @@ from django.contrib.contenttypes.models import ContentType
 class TextContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextContent
-        fields = '__all__'
+        fields = ['id', 'text']
+
+    def create(self, validated_data):
+        # Set any required fields, such as 'owner' if applicable
+        # validated_data['owner'] = self.context['request'].user
+        return super().create(validated_data)
+
+
 
 class VideoContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = VideoContent
-        fields = '__all__'
+        fields = ['id', 'video_url']
+
+    def create(self, validated_data):
+        # Set any required fields
+        return super().create(validated_data)
 
 class ContentSerializer(serializers.ModelSerializer):
     item = serializers.SerializerMethodField()
-    content_type = serializers.SlugRelatedField(
-        queryset = ContentType.objects.filter(model__in=('textcontent', 'videocontent')),
-        slug_field='model'
-    )
+
     class Meta:
         model = Content
         fields = ['id', 'module', 'order', 'content_type', 'object_id', 'item']
+        read_only_fields = ['module', 'order', 'content_type', 'object_id', 'item']
 
     def get_item(self, obj):
         if isinstance(obj.item, TextContent):
@@ -29,32 +38,20 @@ class ContentSerializer(serializers.ModelSerializer):
             return VideoContentSerializer(obj.item).data
         return None
 
-    def create(self, validated_data):
-        content_data = self.initial_data.get('item')
-        content_type = validated_data.pop('content_type')
-        model_class = content_type.model_class()
-        content_serializer_class = None
-
-        if content_type.model == 'textcontent':
-            content_serializer_class = TextContentSerializer
-        elif content_type.model == 'videocontent':
-            content_serializer_class = VideoContentSerializer
-        else:
-            raise serializers.ValidationError('Invalid content type')
-
-        content_serializer = content_serializer_class(data=content_data)
-        content_serializer.is_valid(raise_exception=True)
-        content_instance = content_serializer.save(owner=self.context['request'].user)
-        validated_data['object_id'] = content_instance.id
-        validated_data['content_type'] = content_type
-
-        return super().create(validated_data)
 
 class ModuleSerializer(serializers.ModelSerializer):
-    contents = serializers.SerializerMethodField()
+    contents = ContentSerializer(many=True, read_only=True)
+    course = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = Module
-        fields = ['id', 'title', 'description', 'order', 'contents']
+        fields = ['id', 'course', 'title', 'description', 'order', 'contents']
+
+    # Override the create method
+    def create(self, validated_data):
+        course = self.context['course']
+        validated_data['course'] = course
+        return super().create(validated_data)
     #validate inputs at serializers
     def validate_title(self, value):
         return checkTitle(value)
@@ -67,10 +64,14 @@ class ModuleSerializer(serializers.ModelSerializer):
     
 
 class CourseSerializer(serializers.ModelSerializer):
-    modules = ModuleSerializer(many=True)
+    modules = ModuleSerializer(many=True, read_only=True) 
+    subject = serializers.PrimaryKeyRelatedField(
+        queryset=Subject.objects.all(),
+        required=False  
+    )
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'created_at', 'updated_at', 'modules']
+        fields = ['id', 'subject', 'title', 'description', 'created_at', 'updated_at', 'modules']
     #validate inputs at serializers
     def validate_title(self, value):
         return checkTitle(value)

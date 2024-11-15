@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 # Create your models here.
 
-class Subject:
+class Subject(models.Model):
     title = models.CharField(max_length=255, unique=True, validators=[checkTitle])
     code = models.CharField(max_length=6, unique=True)
     owner = models.ForeignKey(User,related_name='subjects', on_delete=models.CASCADE)
@@ -53,11 +53,11 @@ class Content(models.Model):
         ordering = ['order']
         unique_together = ('module', 'order')
 
-class TextContent(Content):
+class TextContent(models.Model):
     text = models.TextField(validators=[checkText])
     #Add validation upon saving to db
     def clean(self):
         self.text = self.text.strip().capitalize()
 
-class VideoContent(Content):
+class VideoContent(models.Model):
     video_url = models.URLField()

@@ -1,65 +1,37 @@
+# courses/urls.py
+
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import CourseViewSet, ModuleViewSet, ContentViewSet, TextContentViewSet, VideoContentViewSet
+from rest_framework_nested import routers
+from .views import (
+    SubjectViewSet,
+    CourseViewSet,
+    ModuleViewSet,
+    ContentViewSet,
+    TextContentViewSet,
+    VideoContentViewSet,
+)
 
-router = DefaultRouter()
-router.register(r'courses', CourseViewSet, basename='course')
+# Main router
+router = routers.DefaultRouter()
+router.register(r'subjects', SubjectViewSet, basename='subject')
 
-# Custom URL patterns for nested relationships
-module_list = ModuleViewSet.as_view({
-    'get': 'list',
-    'post': 'create'
-})
+# Nested routers
+subjects_router = routers.NestedDefaultRouter(router, r'subjects', lookup='subject')
+subjects_router.register(r'courses', CourseViewSet, basename='subject-courses')
 
-module_detail = ModuleViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'patch': 'partial_update',
-    'delete': 'destroy'
-})
+courses_router = routers.NestedDefaultRouter(subjects_router, r'courses', lookup='course')
+courses_router.register(r'modules', ModuleViewSet, basename='course-modules')
 
-content_list = ContentViewSet.as_view({
-    'get': 'list',
-})
+modules_router = routers.NestedDefaultRouter(courses_router, r'modules', lookup='module')
 
-text_content_list = TextContentViewSet.as_view({
-    'get': 'list',
-    'post': 'create'
-})
+# Register specific content routes before the general 'contents' route
+modules_router.register(r'textcontents', TextContentViewSet, basename='module-textcontents')
+modules_router.register(r'videocontents', VideoContentViewSet, basename='module-videocontents')
+modules_router.register(r'contents', ContentViewSet, basename='module-contents')
 
-text_content_detail = TextContentViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'patch': 'partial_update',
-    'delete': 'destroy'
-})
-
-video_content_list = VideoContentViewSet.as_view({
-    'get': 'list',
-    'post': 'create'
-})
-
-video_content_detail = VideoContentViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'patch': 'partial_update',
-    'delete': 'destroy'
-})
 urlpatterns = [
     path('', include(router.urls)),
-    # Nested URLs for Modules under Courses
-    path('courses/<int:course_pk>/modules/', module_list, name='module-list'),
-    path('courses/<int:course_pk>/modules/<int:pk>/', module_detail, name='module-detail'),
-
-    # Nested URLs for Text Content under Modules
-    # For All 
-    path('courses/<int:course_pk>/modules/<int:module_pk>/contents/', content_list, name='module-contents'),
-    
-    # Nested URLs for Text Content under Modules
-    path('courses/<int:course_pk>/modules/<int:module_pk>/text-content/', text_content_list, name='text-content-list'),
-    path('courses/<int:course_pk>/modules/<int:module_pk>/text-content/<int:pk>/', text_content_detail, name='text-content-detail'),
-
-    # Nested URLs for Video Content under Modules
-    path('courses/<int:course_pk>/modules/<int:module_pk>/video-content/', video_content_list, name='video-content-list'),
-    path('courses/<int:course_pk>/modules/<int:module_pk>/video-content/<int:pk>/', video_content_detail, name='video-content-detail'),
+    path('', include(subjects_router.urls)),
+    path('', include(courses_router.urls)),
+    path('', include(modules_router.urls)),
 ]
