@@ -17,7 +17,7 @@ class Course(models.Model):
     description = models.TextField(validators=[checkDescription])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    is_archived = models.BooleanField(default=False)
     #clean up and trim inputs
     def clean(self):
         checkDate(self.created_at,self.updated_at)
