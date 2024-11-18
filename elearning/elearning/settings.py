@@ -114,7 +114,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Bangkok'
+USE_TZ = True
+
 
 USE_I18N = True
 
@@ -130,3 +132,59 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+#settings for CELERY
+
+from celery.schedules import crontab
+
+# Celery Beat schedule
+CELERY_BEAT_SCHEDULE = {
+    'archive-outdated-courses': {
+        'task': 'courses.tasks.archive_outdated_courses',
+        'schedule': crontab(hour=0, minute=0),  # Runs daily at midnight
+    },
+}
+
+CELERY_TIMEZONE = 'Asia/Bangkok'
+CELERY_ENABLE_UTC = False
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {name} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'courses.tasks': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
+
+
+# settings.py
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = '08761b7e81953b'
+EMAIL_HOST_PASSWORD = 'ab51a0d0419d4f'
+EMAIL_PORT = '2525'  
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = 'no-reply@example.com'
+
+
+SITE_URL = 'http://localhost:8000'

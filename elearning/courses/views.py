@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import  get_object_or_404
+from .tasks import send_new_course_email
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
@@ -20,7 +21,8 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         subject = Subject.objects.get(pk=self.kwargs['subject_pk'])
-        serializer.save(subject=subject)
+        course = serializer.save(subject=subject)
+        send_new_course_email.delay(course.id)
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         id = instance.id
