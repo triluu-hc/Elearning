@@ -30,8 +30,9 @@ def permission_denied_view(request):
     raise PermissionDenied
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('courses.urls')),
+    path('courses/', include('courses.urls')),
     path("403/", permission_denied_view),
+    path('users/', include('users.urls')),
 ]
 handler403 = response_error_handler
 
