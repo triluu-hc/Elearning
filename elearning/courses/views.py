@@ -4,19 +4,55 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Subject,Course, Module, Content, TextContent, VideoContent
 from .serializers import (SubjectSerializer,CourseSerializer, ModuleSerializer, ContentSerializer, TextContentSerializer, VideoContentSerializer)
 from rest_framework.response import Response
-from rest_framework.decorators import action
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import  get_object_or_404
 from .tasks import send_new_course_email
+from django.core.cache import cache
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.subject.owner == request.user
+    
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    def get_queryset(self):
+        return Module.objects.filter(course_id=self.kwargs['course_pk'])
+    def retrieve(self, request, *args, **kwargs):
+        cache_key = f"subject_{kwargs['pk']}"
+        cached_subject = cache.get(cache_key)
+
+        if cached_subject:
+            return Response(cached_subject, status=status.HTTP_200_OK)
+
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        response_data = serializer.data
+
+        cache.set(cache_key, response_data, timeout=3600)
+
+        return Response(response_data)
+
+    def perform_create(self, serializer):
+        instance = serializer.save(owner=self.request.user)
+        #add cache here
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        cache_key = f"subject_{instance.id}"
+        cache.delete(cache_key)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        subject_id = instance.id
+        self.perform_destroy(instance)
+
+        cache_key = f"subject_{subject_id}"
+        cache.delete(cache_key)
+
+        return Response({"message": f"Subject with id {subject_id} deleted successfully"}, status=status.HTTP_200_OK)
 
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
