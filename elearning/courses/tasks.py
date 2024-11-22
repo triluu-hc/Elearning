@@ -16,7 +16,6 @@ def send_new_course_email(course_id):
         course_id = course.id
         course_title = course.title
         course_description = course.description
-
         # Construct the URL as per your requirement
         course_url = f"{settings.SITE_URL}/api/subjects/{subject_pk}/courses/{course_id}/"
 

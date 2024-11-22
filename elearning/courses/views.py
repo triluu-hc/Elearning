@@ -16,11 +16,11 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    #permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    #permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
         return Course.objects.filter(subject_id=self.kwargs['subject_pk'])
