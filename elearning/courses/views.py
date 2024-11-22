@@ -8,16 +8,19 @@ from rest_framework.decorators import action
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import  get_object_or_404
 from .tasks import send_new_course_email
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.subject.owner == request.user
+@method_decorator(csrf_exempt, name='dispatch')
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
     #permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
-
+@method_decorator(csrf_exempt, name='dispatch')
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     #permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
@@ -37,7 +40,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 class ModuleViewSet(viewsets.ModelViewSet):
     serializer_class = ModuleSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    #permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
         return Module.objects.filter(course_id=self.kwargs['course_pk'])
@@ -51,7 +54,7 @@ class ModuleViewSet(viewsets.ModelViewSet):
 
 class ContentViewSet(viewsets.ModelViewSet):
     serializer_class = ContentSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    #permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
         return Content.objects.filter(module_id=self.kwargs['module_pk'])
@@ -63,7 +66,7 @@ class ContentViewSet(viewsets.ModelViewSet):
 
 class TextContentViewSet(viewsets.ModelViewSet):
     serializer_class = TextContentSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    #permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
     def get_queryset(self):
         module_pk = self.kwargs.get('module_pk')
         # Get all TextContent objects linked to the module via the Content model
@@ -88,7 +91,7 @@ class TextContentViewSet(viewsets.ModelViewSet):
 
 class VideoContentViewSet(viewsets.ModelViewSet):
     serializer_class = VideoContentSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    #permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
     def perform_create(self, serializer):
         video_content = serializer.save()
         module_pk = self.kwargs.get('module_pk')

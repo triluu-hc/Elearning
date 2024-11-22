@@ -10,6 +10,6 @@ course = Course.objects.create(
 )
 Course.objects.filter(id=course.id).update(updated_at=old_date)
 
-from courses.tasks import archive_old_courses
-archive_old_courses.delay()
+from courses.tasks import archive_outdated_courses
+archive_outdated_courses.delay()
 
