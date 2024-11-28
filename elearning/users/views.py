@@ -8,6 +8,7 @@ from rest_framework import permissions,status
 from django.http import JsonResponse
 from rest_framework.permissions import IsAuthenticated
 from .serializers import UserSerializer
+from rest_framework.authtoken.models import Token
 class UserRegistrationView(CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (permissions.AllowAny,)
@@ -17,7 +18,14 @@ class UserRegistrationView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            return JsonResponse({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
+            token, created = Token.objects.get_or_create(user=user)
+            return JsonResponse(
+                {
+                    'message': 'User registered successfully',
+                    'token': token.key  # Send the token as part of the response
+                }, 
+                status=status.HTTP_201_CREATED
+            )
         return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserLoginView(APIView):
@@ -28,8 +36,14 @@ class UserLoginView(APIView):
         password = request.data.get('password')
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request, user)
-            return JsonResponse({'message': 'Login successful'}, status=status.HTTP_200_OK)
+            token, created = Token.objects.get_or_create(user=user)
+            return JsonResponse(
+                {
+                    'message': 'Login successful',
+                    'token': token.key  # Send the token as part of the response
+                },
+                status=status.HTTP_200_OK
+            )
         else:
             return JsonResponse({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
         
