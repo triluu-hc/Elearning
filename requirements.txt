@@ -1,0 +1,32 @@
+# Django and DRF
+Django==4.2  # Adjust this to your Django version
+djangorestframework==3.14.0
+
+# Celery for asynchronous tasks
+celery==5.3.0
+django-celery-beat==2.5.0  # To support periodic tasks
+
+# Redis for caching and message brokering
+django-redis==5.2.0
+redis==4.5.1
+
+# PostgreSQL Database Adapter
+psycopg2-binary==2.9.6  # Adjust the version according to compatibility
+
+# Testing tools
+coverage==7.3.1  # Optional, for measuring test coverage
+unittest-xml-reporting==3.0.7  # For advanced reporting in CI/CD
+mock==5.0.2  # For mocking in tests
+factory-boy==3.2.1  # Optional, for setting up model factories
+
+# Nested Routers for more detailed URLs
+drf-nested-routers==0.93.3
+
+# Mailtrap for email testing
+django-anymail[mailgun]==9.0  # Mailtrap works with Anymail's Mailgun settings for testing email.
+
+# Additional utilities for Celery
+django-celery-results==2.5.1  # For tracking Celery task results
+
+# Miscellaneous
+python-dotenv==1.0.0  # For handling environment variables

@@ -33,7 +33,6 @@ class SubjectAPITestCase(APITestCase):
         url = reverse('subject-detail', args=[self.subject.pk])
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
         self.assertEqual(response.data['title'], 'Physics')
 
     def test_update_subject(self):
@@ -256,6 +255,32 @@ class ContentTestsCases(APIClient):
         # Check if the deletion was successful
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(VideoContent.objects.count(), 0)
+# class ArchiveOutdatedCoursesTestCase(APITestCase):
+#     def setUp(self):
+#         self.client = APIClient()
+#         self.user = User.objects.create_user(username='testuser', password='testpass')
+#         self.client.force_authenticate(user=self.user)
+#         self.subject = Subject.objects.create(title='Physics', code='PHY101', owner=self.user)
+#         self.course = Course.objects.create(subject=self.subject, title='Quantum Mechanics', description='An introduction to quantum mechanics')
+#         old_date = timezone.now() - timedelta(days=100)
+#         s = Course.objects.filter(id=self.course.id).update(updated_at=old_date)
+#         print(s)
+
+#     @patch('courses.tasks.archive_outdated_courses.delay')
+#     def test_archive_outdated_courses_task(self, mock_archive_task):
+#         # Trigger the Celery task
+#         archive_outdated_courses.delay()
+
+#         # Assert that the Celery task was called
+#         mock_archive_task.assert_called_once()
+
+#     def test_archive_outdated_courses(self):
+#         # Run the task to archive outdated courses
+#         archive_outdated_courses()
+
+#         # Refresh from db and check if the course has been archived
+#         self.course.refresh_from_db()
+#         self.assertTrue(self.course.is_archived, msg="The course should be marked as archived.")
 # Running the tests
 if __name__ == '__main__':
     unittest.main()

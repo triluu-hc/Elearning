@@ -6,7 +6,7 @@ old_date = timezone.now() - timedelta(days=100)
 course = Course.objects.create(
     title='Old Course',
     description='This course should be archived.',
-    subject_id=1,  # Replace with a valid subject ID
+    subject_id=1,  
 )
 Course.objects.filter(id=course.id).update(updated_at=old_date)
 

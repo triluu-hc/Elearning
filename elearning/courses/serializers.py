@@ -25,7 +25,6 @@ class VideoContentSerializer(serializers.ModelSerializer):
 
 class ContentSerializer(serializers.ModelSerializer):
     item = serializers.SerializerMethodField()
-
     class Meta:
         model = Content
         fields = ['id', 'module', 'order', 'content_type', 'object_id', 'item']
